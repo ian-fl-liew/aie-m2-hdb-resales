@@ -1,0 +1,33 @@
+node_modules
+dist
+dist-ssr
+*.local
+
+# Env files hold API keys — never commit these
+.env
+.env.*
+!.env.example
+
+# Team-internal notes — kept locally, not published
+docs/
+
+# Editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*:Zone.Identifier
+scripts/*
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

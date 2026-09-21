@@ -1,0 +1,147 @@
+.panel {
+  padding: var(--space-6);
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.heading {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+}
+
+.lead {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin-bottom: var(--space-5);
+}
+
+.estimate {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-5);
+}
+
+.estimateLabel {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.estimateValue {
+  font-size: 1.75rem;
+  font-weight: var(--weight-bold);
+  color: var(--text-strong);
+  line-height: 1.1;
+}
+
+/* ---- Range bar ---- */
+.rangeWrap {
+  margin-bottom: var(--space-5);
+}
+
+.rangeBar {
+  position: relative;
+  height: 8px;
+  margin: var(--space-8) 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  background: linear-gradient(
+    90deg,
+    var(--success-500),
+    var(--primary-500),
+    var(--warning-500)
+  );
+}
+
+.marker {
+  position: absolute;
+  top: 50%;
+  width: 3px;
+  height: 20px;
+  transform: translate(-50%, -50%);
+  background: var(--text-strong);
+  border-radius: var(--radius-pill);
+}
+
+.markerLabel {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--text-strong);
+  color: var(--neutral-0);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+}
+
+.rangeLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.verdictText {
+  font-size: var(--text-sm);
+  color: var(--text-body);
+  margin-bottom: var(--space-5);
+}
+
+/* ---- Comparables table ---- */
+.comparables {
+  margin-bottom: var(--space-4);
+  font-size: var(--text-sm);
+}
+
+.comparables summary {
+  cursor: pointer;
+  color: var(--primary-600);
+  font-weight: var(--weight-medium);
+}
+
+.table {
+  width: 100%;
+  margin-top: var(--space-3);
+  border-collapse: collapse;
+  font-size: var(--text-xs);
+}
+
+.table th,
+.table td {
+  padding: var(--space-2);
+  text-align: left;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.table th {
+  color: var(--text-muted);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
