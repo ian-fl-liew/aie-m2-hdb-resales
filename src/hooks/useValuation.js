@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { fetchComparables } from "../services/resaleApi";
+import { fetchComparables, fetchPriceHistory } from "../services/resaleApi";
 import { estimateValue, compareToListing } from "../services/valuation";
 import { remainingLeaseFromCommenceYear } from "../utils/hdb";
 
@@ -22,11 +22,11 @@ export function useValuation(listing) {
 
   // Depend on the individual fields rather than the object, so a new object
   // identity with identical values does not refetch.
-  const { town, flatType, floorAreaSqm, storeyRange, leaseCommenceYear, price } =
+  const { town, block, streetName, flatType, floorAreaSqm, storeyRange, leaseCommenceYear, price } =
     listing ?? {};
 
   useEffect(() => {
-    if (!town || !flatType || !floorAreaSqm) return;
+    if (!town || !block || !streetName || !flatType || !floorAreaSqm) return;
 
     const controller = new AbortController();
 
@@ -35,10 +35,16 @@ export function useValuation(listing) {
       setError(null);
 
       try {
-        const { records } = await fetchComparables({
-          town,
+        // const { records } = await fetchComparables({
+        //   town,
+        //   flatType,
+        //   signal: controller.signal,
+        // });
+       
+        const { records } = await fetchPriceHistory({
+          block,
+          streetName,
           flatType,
-          signal: controller.signal,
         });
 
         const result = estimateValue(
@@ -62,7 +68,7 @@ export function useValuation(listing) {
         } else {
           setValuation(result);
           setComparison(compareToListing(result, price));
-          setComparables(records.slice(0, 8));
+          setComparables(records.slice(0, records.length < 20 ? records.length : 20));
         }
       } catch (err) {
         if (err.name === "AbortError") return;
@@ -74,7 +80,7 @@ export function useValuation(listing) {
 
     run();
     return () => controller.abort();
-  }, [town, flatType, floorAreaSqm, storeyRange, leaseCommenceYear, price]);
+  }, [town, block, streetName, flatType, floorAreaSqm, storeyRange, leaseCommenceYear, price]);
 
   return { valuation, comparison, comparables, loading, error };
 }

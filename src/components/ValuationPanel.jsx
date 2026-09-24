@@ -46,8 +46,8 @@ function ValuationPanel({ listing }) {
       <p className={styles.lead}>
         Based on <strong>{valuation.sampleSize}</strong> recent{" "}
         {listing.flatType.toLowerCase()} transactions in{" "}
-        {titleCase(listing.town)}, at a median of{" "}
-        <strong>{formatPrice(valuation.medianPsm)}/sqm</strong>.
+        {titleCase(listing.block)} {titleCase(listing.streetName)}, at a median
+        of <strong>{formatPrice(valuation.medianPsm)}/sqm</strong>.
       </p>
 
       <div className={styles.estimate}>

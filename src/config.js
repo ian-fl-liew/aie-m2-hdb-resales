@@ -19,3 +19,13 @@ export const AI_PROVIDER = import.meta.env.VITE_AI_PROVIDER || "mock";
 export const AI_BASE_URL = import.meta.env.VITE_AI_BASE_URL || "";
 export const AI_MODEL = import.meta.env.VITE_AI_MODEL || "";
 export const AI_API_KEY = import.meta.env.VITE_AI_API_KEY || "";
+
+/** HDB resale dataset on data.gov.sg. */
+export const DATASET_ID =
+  import.meta.env.VITE_HDB_DATASET_ID || "d_8b84c4ee58e3cfc0ece0d773c8ca6abc";
+
+export const DATA_GOV_BASE_URL =
+  import.meta.env.VITE_DATA_GOV_BASE_URL || "https://data.gov.sg/api/action/datastore_search";
+
+export const FIXED_LIMIT = 200;
+export const FIXED_SORT = "month desc";
