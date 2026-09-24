@@ -13,6 +13,9 @@ import ListingDetailPage from "./pages/ListingDetailPage";
 import MyListingsPage from "./pages/MyListingsPage";
 import NewListingPage from "./pages/NewListingPage";
 import EditListingPage from "./pages/EditListingPage";
+import AgentsPage from "./pages/AgentsPage";
+import NewAgentPage from "./pages/NewAgentPage";
+import EditAgentPage from "./pages/EditAgentPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import "./App.css";
 
@@ -40,6 +43,11 @@ function App() {
             <Route path="my-listings" element={<MyListingsPage />} />
             <Route path="my-listings/new" element={<NewListingPage />} />
             <Route path="my-listings/:id/edit" element={<EditListingPage />} />
+
+            {/* Shared agent directory */}
+            <Route path="agents" element={<AgentsPage />} />
+            <Route path="agents/new" element={<NewAgentPage />} />
+            <Route path="agents/:id/edit" element={<EditAgentPage />} />
 
             {/* AI assistant */}
             <Route

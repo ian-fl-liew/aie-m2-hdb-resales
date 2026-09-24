@@ -17,7 +17,7 @@
 // Render's free tier sleeps when idle, so the first request after a quiet
 // spell can take up to a minute while the server wakes up.
 
-import { RESALE_API_BASE } from "../config";
+import { RESALE_API_BASE,DATASET_ID, DATA_GOV_BASE_URL, FIXED_LIMIT, FIXED_SORT } from "../config";
 
 /** The API caps limit at 500. */
 const MAX_LIMIT = 500;
@@ -46,14 +46,14 @@ export async function fetchTransactions({
     limit: String(Math.min(limit, MAX_LIMIT)),
   });
   if (town) params.set("town", town);
-  if (flatType) params.set("flat_type", flatType);
+  if (flatType) params.set("flat_type", flatType);  
   if (from) params.set("from", from);
   if (to) params.set("to", to);
 
   let response;
   try {
     response = await fetch(`${RESALE_API_BASE}/flats?${params}`, { signal });
-  } catch (err) {
+   } catch (err) {
     if (err.name === "AbortError") throw err;
     throw new Error(
       "Could not reach the resale API. It may be waking up — try again in a minute.",
@@ -82,4 +82,53 @@ export async function fetchTransactions({
  */
 export function fetchComparables({ town, flatType, signal }) {
   return fetchTransactions({ town, flatType, limit: 200, signal });
+}
+
+
+// Build HDB datastore_search URL — same logic as HdbContext but reusable for Price History
+export function buildHdbUrl({ block, streetName, flatType }) {
+  const filters = {};
+  if (block) filters.block = { type: "ILIKE", value: String(block) };
+  if (streetName) filters.street_name = { type: "ILIKE", value: String(streetName) };
+  if (flatType) filters.flat_type = { type: "ILIKE", value: String(flatType) };
+
+  const encoded = encodeURIComponent(JSON.stringify(filters));
+  let url = `${DATA_GOV_BASE_URL}?resource_id=${DATASET_ID}`;
+  if (Object.keys(filters).length > 0) url += `&filters=${encoded}`;
+  
+  const offset = 0;
+  url += `&offset=${offset}`;
+  url += `&sort=${encodeURIComponent(FIXED_SORT)}`;
+  url += `&limit=${FIXED_LIMIT}`;
+  return url;
+}
+
+// Fetch price history for a given address — used by PriceHistory component
+export async function fetchPriceHistory({ block, streetName, flatType }) {
+  const url = buildHdbUrl({ block, streetName, flatType });
+  
+  console.log("Fetching price history from URL:", url);
+  let response;
+  try {
+    response = await fetch(url);
+   } catch (err) {
+    if (err.name === "AbortError") throw err;
+    throw new Error(
+      "Could not reach the resale API. It may be waking up — try again in a minute.",
+      { cause: err },
+    );
+  }
+  
+  if (!response.ok) {
+    throw new Error(`The resale API returned ${response.status}.`);
+  }
+
+  const records = await response.json();
+
+   if (!records.success) throw new Error("HDB API error");
+  
+   return {
+    records: records.result.records,
+    total: records.result.total,
+  };
 }

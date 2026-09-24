@@ -8,6 +8,8 @@
 // Each function returns an object of { fieldName: "message" }. An empty object
 // means the form is valid.
 
+import { AGENT_SPECIALTIES } from "./agents";
+
 /** Rules for the create/edit listing form. */
 export function validateListing(values) {
   const errors = {};
@@ -70,6 +72,31 @@ export function validateRegistration(form) {
 
   if (form.password !== form.confirmPassword)
     errors.confirmPassword = "The passwords do not match.";
+
+  return errors;
+}
+
+/** Rules for the create/edit agent form. */
+export function validateAgent(values) {
+  const errors = {};
+
+  if (!values.name.trim()) errors.name = "Enter the agent name.";
+
+  if (!values.email.trim()) errors.email = "Enter the agent email.";
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim()))
+    errors.email = "That does not look like a valid email address.";
+
+  const phone = values.phone.trim().replace(/\s/g, "").replace(/^\+65/, "");
+  if (!values.phone.trim()) errors.phone = "Enter the phone number.";
+  else if (!/^[689]\d{7}$/.test(phone))
+    errors.phone = "Enter a valid Singapore phone number.";
+
+  if (!AGENT_SPECIALTIES.includes(values.specialty))
+    errors.specialty = "Select a specialty.";
+
+  if (!values.remarks.trim()) errors.remarks = "Enter remarks.";
+  else if (values.remarks.trim().length < 10)
+    errors.remarks = "Remarks must be at least 10 characters.";
 
   return errors;
 }

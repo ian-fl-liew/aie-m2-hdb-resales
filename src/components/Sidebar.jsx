@@ -1,11 +1,12 @@
 import { NavLink, useNavigate } from "react-router";
-import { Home, Building2, Sparkles, LogOut } from "lucide-react";
+import { Home, Building2, Sparkles, LogOut, Users } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import styles from "./Sidebar.module.css";
 
 const NAV_ITEMS = [
   { to: "/app", label: "Browse", icon: Home, end: true },
   { to: "/app/my-listings", label: "My Listings", icon: Building2 },
+  { to: "/app/agents", label: "Agents", icon: Users },
   { to: "/app/assistant", label: "AI Assistant", icon: Sparkles },
 ];
 
