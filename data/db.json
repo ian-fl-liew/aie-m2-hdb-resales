@@ -748,5 +748,44 @@
       "status": "available",
       "listedAt": "2026-08-31"
     }
-  ]
+  ],
+  "agents": [
+    {
+      "id": "a1",
+      "name": "Aisha Rahman",
+      "email": "aisha.rahman@example.com",
+      "phone": "+65 9123 4567",
+      "specialty": "HDB",
+      "remarks": "Focuses on resale homes across north eastern Singapore.",
+      "createdAt": "2026-09-24"
+    },
+    {
+      "id": "a2",
+      "name": "Daniel Lim",
+      "email": "daniel.lim@example.com",
+      "phone": "+65 8123 7654",
+      "specialty": "Condo",
+      "remarks": "Supports buyers looking for city-fringe condominiums.",
+      "createdAt": "2026-09-24"
+    },
+    {
+      "id": "a3",
+      "name": "Mei Chen",
+      "email": "mei.chen@example.com",
+      "phone": "+65 6123 4567",
+      "specialty": "Landed",
+      "remarks": "Experienced with landed homes in established estates.",
+      "createdAt": "2026-09-24"
+    },
+    {
+      "name": "David Tan",
+      "email": "david@gmail.com",
+      "phone": "+65 8372 6389",
+      "specialty": "Condo",
+      "remarks": "i am specialised in luxury bungalow",
+      "createdAt": "2026-09-24",
+      "id": "9GeKHofUU1E"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
 }
