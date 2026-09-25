@@ -1,5 +1,15 @@
 import { useParams, Link } from "react-router";
-import { MapPin, Building, Calendar, Maximize, Layers } from "lucide-react";
+import imagePlaceholder from "../assets/placeholder.png";
+import { useState } from "react";
+import {
+  MapPin,
+  Building,
+  Calendar,
+  Maximize,
+  Layers,
+  Check,
+  Camera,
+} from "lucide-react";
 import { useListings } from "../hooks/useListings";
 import { useAuth } from "../hooks/useAuth";
 import ValuationPanel from "../components/ValuationPanel";
@@ -16,12 +26,13 @@ import styles from "./ListingDetailPage.module.css";
 
 function ListingDetailPage() {
   const { id } = useParams();
-  const { getListing, loading } = useListings();
+  const { getListingById, updateListing, loading } = useListings();
   const { user } = useAuth();
+  const [activeImg, setActiveImg] = useState(0);
 
   if (loading) return <Spinner />;
 
-  const listing = getListing(id);
+  const listing = getListingById(id);
 
   if (!listing) {
     return (
@@ -40,6 +51,23 @@ function ListingDetailPage() {
     listing.leaseCommenceYear,
   );
   const isOwner = String(listing.ownerId) === String(user?.id);
+  const isSold = String(listing.status).toLowerCase() === "sold";
+
+  // support both legacy `imageUrl` and new `imageUrls` array
+  const images = listing.imageUrls?.length
+    ? listing.imageUrls
+    : listing.imageUrl
+      ? [listing.imageUrl]
+      : [];
+  const cover = images[0] || imagePlaceholder;
+  const thumbs = images.slice(1, 5);
+
+  const isAvailable = listing.status.toLowerCase() === "available";
+
+  const handleMarkSold = async () => {
+    if (isSold) return;
+    await updateListing(listing.id, { ...listing, status: "Sold" });
+  };
 
   const specs = [
     { icon: Building, label: "Flat type", value: titleCase(listing.flatType) },
@@ -59,7 +87,11 @@ function ListingDetailPage() {
       label: "Lease commence year",
       value: listing.leaseCommenceYear,
     },
-    { icon: Calendar, label: "Listed On", value: formatDate(listing.listedAt) },
+    {
+      icon: Building,
+      label: "Status",
+      value: isAvailable ? "Available" : "Sold",
+    },
   ];
 
   return (
@@ -67,19 +99,51 @@ function ListingDetailPage() {
       <Link to="/app" className="back-link">
         ← Back to listings
       </Link>
-
+      {/* Gallery — PG style: large left + 2x2 right */}
+      <div className={styles.gallery}>
+        <div className={styles.mainImg}>
+          <img src={images[activeImg] || cover} alt={listing.title} />
+          <span className={styles.countPill}>
+            <Camera
+              size={12}
+              style={{ verticalAlign: "-1px", marginRight: 4 }}
+            />
+            {activeImg + 1} / {images.length}
+          </span>
+          {images.length > 0 && (
+            <button
+              className={styles.viewAll}
+              onClick={() => setActiveImg((i) => (i + 1) % images.length)}
+            >
+              Show all {images.length} photos
+            </button>
+          )}
+        </div>
+        <div className={styles.thumbs}>
+          {thumbs.map((src, idx) => (
+            <div
+              key={idx}
+              className={styles.thumb}
+              onClick={() => setActiveImg(idx + 1)}
+              style={{ cursor: "pointer" }}
+            >
+              <img src={src} alt={`thumb ${idx}`} />
+              {idx === 3 && images.length > 5 && (
+                <div className={styles.thumbforMore}>
+                  +{images.length - 5} more
+                </div>
+              )}
+            </div>
+          ))}
+          {thumbs.length === 0 && (
+            <div className={styles.thumb}>
+              <img src={cover} alt="thumb" />
+            </div>
+          )}
+        </div>
+      </div>
       <div className={styles.layout}>
         <div className={styles.main}>
-          <div className={styles.hero}>
-            {listing.imageUrl ? (
-              <img src={listing.imageUrl} alt="" className={styles.image} />
-            ) : (
-              <div className={styles.imagePlaceholder} aria-hidden="true">
-                <Building size={40} />
-              </div>
-            )}
-          </div>
-
           <div className="page-header">
             <div>
               <h1>{listing.title}</h1>
@@ -90,12 +154,30 @@ function ListingDetailPage() {
               </p>
             </div>
             {isOwner && (
-              <Link
-                to={`/app/my-listings/${listing.id}/edit`}
-                className="btn-secondary"
-              >
-                Edit listing
-              </Link>
+              <div className={styles.ownerActions}>
+                <Link
+                  to={`/app/my-listings/${listing.id}/edit`}
+                  className="btn-secondary"
+                >
+                  Edit listing
+                </Link>
+                <button
+                  type="button"
+                  className="btn-danger"
+                  onClick={handleMarkSold}
+                  disabled={isSold}
+                  show={isSold.toString()}
+                  aria-label={`${isSold ? "Sold" : "Mark as Sold"}: ${listing.status}`}
+                >
+                  {isSold ? (
+                    "Sold"
+                  ) : (
+                    <>
+                      <Check size={16} aria-hidden="true" /> Mark as Sold
+                    </>
+                  )}
+                </button>
+              </div>
             )}
           </div>
 

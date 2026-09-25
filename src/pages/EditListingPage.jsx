@@ -9,12 +9,12 @@ function EditListingPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { getListing, updateListing, submitting, error, loading } =
+  const { getListingById, updateListing, submitting, error, loading } =
     useListings();
 
   if (loading) return <Spinner />;
 
-  const listing = getListing(id);
+  const listing = getListingById(id);
 
   if (!listing) {
     return (
@@ -77,6 +77,7 @@ function EditListingPage() {
           price: String(listing.price ?? ""),
           description: listing.description ?? "",
           imageUrl: listing.imageUrl ?? "",
+          imageUrls: listing.imageUrls ?? (listing.imageUrl ? [listing.imageUrl] : []),
           ownerId: listing.ownerId ?? "",
           ownerName: listing.ownerName ?? "",
           status: listing.status ?? "",

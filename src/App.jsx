@@ -49,12 +49,26 @@ function App() {
             <Route path="listings/:id" element={<ListingDetailPage />} />
 
             {/* Sellers */}
-            <Route path="my-listings" element={<MyListingsPage />} />
+            <Route
+              path="my-listings"
+              element={
+                <Suspense fallback={<Spinner label="Loading my listings…" />}>
+                  <MyListingsPage />
+                </Suspense>
+              }
+            />
             <Route path="my-listings/new" element={<NewListingPage />} />
             <Route path="my-listings/:id/edit" element={<EditListingPage />} />
 
             {/* Shared agent directory */}
-            <Route path="agents" element={<AgentsPage />} />
+            <Route
+              path="agents"
+              element={
+                <Suspense fallback={<Spinner label="Loading agents…" />}>
+                  <AgentsPage />
+                </Suspense>
+              }
+            />
             <Route path="agents/new" element={<NewAgentPage />} />
             <Route path="agents/:id/edit" element={<EditAgentPage />} />
 

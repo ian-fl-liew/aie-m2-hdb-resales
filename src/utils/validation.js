@@ -44,14 +44,24 @@ export function validateListing(values) {
   else if (price > 2_000_000)
     errors.price = "That looks too high for a HDB flat. Check the figure.";
 
-  if (values.imageUrl && !/^https?:\/\/.+/.test(values.imageUrl))
-    errors.imageUrl = "Enter a full URL starting with http:// or https://";
+  const imageUrls = Array.isArray(values.imageUrls) && values.imageUrls.length > 0
+    ? values.imageUrls
+    : values.imageUrl
+      ? [values.imageUrl]
+      : [];
+  if (imageUrls.length > 5) errors.imageUrl = "Add no more than 5 images.";
+  else if (
+    imageUrls.some((url) => !/^(https?:\/\/.+|data:image\/.+;base64,.+)/.test(url))
+  )
+    errors.imageUrl =
+      "Use full image URLs starting with http:// or https://, or upload image files.";
 
   if (
     values.description.trim().length > 0 &&
     values.description.trim().length < 20
   )
     errors.description = "Write at least 20 characters, or leave it empty.";
+  if (!values.status) errors.status = "Select a status.";
 
   return errors;
 }

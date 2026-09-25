@@ -14,6 +14,8 @@ const validValues = {
   price: "648000",
   description: "",
   imageUrl: "",
+  imageUrls: [],
+  status: "Available",
 };
 
 describe("ListingForm validate", () => {
@@ -62,6 +64,30 @@ describe("ListingForm validate", () => {
     expect(validate({ ...validValues, imageUrl: "not-a-url" })).toHaveProperty(
       "imageUrl",
     );
+  });
+
+  it("accepts multiple HTTP and uploaded image URLs", () => {
+    expect(
+      validate({
+        ...validValues,
+        imageUrls: [
+          "https://example.com/flat.jpg",
+          "data:image/png;base64,abc123",
+        ],
+      }),
+    ).toEqual({});
+  });
+
+  it("rejects more than five images", () => {
+    expect(
+      validate({
+        ...validValues,
+        imageUrls: Array.from(
+          { length: 6 },
+          (_, index) => `https://example.com/${index}.jpg`,
+        ),
+      }),
+    ).toHaveProperty("imageUrl");
   });
 
   it("allows an empty description but rejects a too-short one", () => {

@@ -1,7 +1,15 @@
 import { useState } from "react";
-import { TOWNS, FLAT_TYPES, STOREY_RANGES, FLAT_MODELS } from "../utils/hdb";
+import {
+  TOWNS,
+  FLAT_TYPES,
+  STOREY_RANGES,
+  FLAT_MODELS,
+  LIST_STATUS,
+} from "../utils/hdb";
 import { titleCase } from "../utils/format";
 import { validateListing } from "../utils/validation";
+import ImageUploader from "./ImageUploader";
+import imagePlaceholder from "../assets/placeholder.png";
 
 /**
  * Controlled form shared by "Create listing" and "Edit listing".
@@ -34,6 +42,8 @@ function ListingForm({
     price: "",
     description: "",
     imageUrl: "",
+    imageUrls: [],
+    status: "Available",
     ...initialValues,
   });
 
@@ -51,6 +61,13 @@ function ListingForm({
     }
   };
 
+  const handleImagesChange = (nextImages) => {
+    setValues((prev) => ({
+      ...prev,
+      imageUrls: nextImages,
+      imageUrl: nextImages[0] ?? "",
+    }));
+  };
   const handleBlur = (e) => {
     const { name } = e.target;
     setTouched((prev) => ({ ...prev, [name]: true }));
@@ -68,12 +85,18 @@ function ListingForm({
 
     if (Object.keys(foundErrors).length > 0) {
       // Move focus to the first problem so keyboard users are not stranded.
-      document.querySelector(`[name="${Object.keys(foundErrors)[0]}"]`)?.focus();
+      document
+        .querySelector(`[name="${Object.keys(foundErrors)[0]}"]`)
+        ?.focus();
       return;
     }
 
+    const images = normalizeImages(values);
+
     onSubmit({
       ...values,
+      imageUrl: images[0] ?? imagePlaceholder,
+      imageUrls: images,
       // Numbers arrive from inputs as strings — coerce before they hit the API.
       price: Number(values.price),
       floorAreaSqm: Number(values.floorAreaSqm),
@@ -92,6 +115,8 @@ function ListingForm({
     "aria-invalid": errorFor(name) ? "true" : undefined,
     "aria-describedby": errorFor(name) ? `${name}-error` : undefined,
   });
+
+  const images = normalizeImages(values);
 
   return (
     <form onSubmit={handleSubmit} className="form" noValidate>
@@ -162,7 +187,10 @@ function ListingForm({
               </option>
             ))}
           </select>
-          <FieldError id="storeyRange-error" message={errorFor("storeyRange")} />
+          <FieldError
+            id="storeyRange-error"
+            message={errorFor("storeyRange")}
+          />
         </div>
 
         <div className="form-field">
@@ -220,7 +248,7 @@ function ListingForm({
         <label htmlFor="price">Asking price (SGD)</label>
         <input
           id="price"
-          type="number"
+          type="money"
           min="100000"
           step="1000"
           placeholder="e.g. 560000"
@@ -230,13 +258,8 @@ function ListingForm({
       </div>
 
       <div className="form-field">
-        <label htmlFor="imageUrl">Image URL (optional)</label>
-        <input
-          id="imageUrl"
-          type="url"
-          placeholder="https://…"
-          {...field("imageUrl")}
-        />
+        <label>Images (optional)</label>
+        <ImageUploader images={images} onChange={handleImagesChange} />
         <FieldError id="imageUrl-error" message={errorFor("imageUrl")} />
       </div>
 
@@ -250,6 +273,18 @@ function ListingForm({
         <FieldError id="description-error" message={errorFor("description")} />
       </div>
 
+      <div className="form-field">
+        <label htmlFor="status">Status</label>
+        <select id="status" {...field("status")}>
+          <option value="">Select a status</option>
+          {LIST_STATUS.map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
+        </select>
+        <FieldError id="status-error" message={errorFor("status")} />
+      </div>
       <button type="submit" className="btn-primary" disabled={submitting}>
         {submitting ? "Saving…" : submitLabel}
       </button>
@@ -264,6 +299,12 @@ function FieldError({ id, message }) {
       {message}
     </p>
   );
+}
+
+function normalizeImages(values) {
+  if (Array.isArray(values.imageUrls)) return values.imageUrls.filter(Boolean);
+  if (Array.isArray(values.imageUrl)) return values.imageUrl.filter(Boolean);
+  return values.imageUrl ? [values.imageUrl] : [];
 }
 
 export default ListingForm;

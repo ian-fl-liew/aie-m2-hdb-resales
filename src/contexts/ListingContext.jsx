@@ -132,28 +132,31 @@ export function ListingProvider({ children }) {
 
   const deleteListing = useCallback(async (id) => {
     // TODO(team): swap window.confirm for a proper modal — see docs/TEAM-TASKS.md
-    if (!window.confirm("Delete this listing? This cannot be undone.")) return;
+    if (!window.confirm("Delete this listing? This cannot be undone.")) {
+      return false;
+    }
 
     try {
       await listingsApi.remove(id);
       dispatch({ type: "DELETE_LISTING", payload: id });
+      return true;
     } catch (err) {
       dispatch({
         type: "SUBMIT_ERROR",
         payload: `Could not delete the listing: ${err.message}`,
       });
+      return false;
     }
   }, []);
 
   /** A seller's own listings. */
   const listingsByOwner = useCallback(
-    (ownerId) =>
-      listings.filter((l) => String(l.ownerId) === String(ownerId)),
+    (ownerId) => listings.filter((l) => String(l.ownerId) === String(ownerId)),
     [listings],
   );
 
-  const getListing = useCallback(
-    (id) => listings.find((l) => String(l.id) === String(id)),
+  const getListingById = useCallback(
+    (id) => listings.find((l) => String(l.id) === String(id)) || null,
     [listings],
   );
 
@@ -172,7 +175,7 @@ export function ListingProvider({ children }) {
         updateListing,
         deleteListing,
         listingsByOwner,
-        getListing,
+        getListingById,
       }}
     >
       {children}

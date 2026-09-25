@@ -99,7 +99,7 @@ function ValuationPanel({ listing }) {
             </thead>
             <tbody>
               {comparables.map((c) => (
-                <tr key={c.flat_id}>
+                <tr key={c._id}>
                   <td>{c.month}</td>
                   <td>{c.block}</td>
                   <td>{c.storey_range}</td>

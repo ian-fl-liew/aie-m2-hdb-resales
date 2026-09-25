@@ -71,6 +71,8 @@ export const FLAT_MODELS = [
   "DBSS",
 ];
 
+export const LIST_STATUS = ["Available", "Sold"];
+
 /**
  * Turn "10 TO 12" into its midpoint floor, 11.
  * Valuation adjusts on height, so it needs a single number to compare.
