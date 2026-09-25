@@ -9,7 +9,7 @@
 // runTool() is the local executor — it is what actually runs, for both the
 // real provider and the mock one, so both paths produce identical data.
 
-import { fetchComparables } from "../resaleApi";
+import { fetchPriceHistory } from "../resaleApi";
 import { estimateValue, compareToListing } from "../valuation";
 import { remainingLeaseFromCommenceYear } from "../../utils/hdb";
 
@@ -116,14 +116,21 @@ function searchListings({ town, flatType, maxPrice, minPrice }, { listings }) {
 }
 
 async function valueListing({ listingId }, { listings }) {
-  const listing = (listings ?? []).find((l) => String(l.id) === String(listingId));
+  const listing = (listings ?? []).find(
+    (l) => String(l.id) === String(listingId),
+  );
   if (!listing) {
     return { error: `No listing found with id ${listingId}.` };
   }
 
   try {
-    const { records } = await fetchComparables({
-      town: listing.town,
+    // const { records } = await fetchComparables({
+    //   town: listing.town,
+    //   flatType: listing.flatType,
+    // });
+    const { records } = await fetchPriceHistory({
+      block: listing.block,
+      streetName: listing.streetName,
       flatType: listing.flatType,
     });
 

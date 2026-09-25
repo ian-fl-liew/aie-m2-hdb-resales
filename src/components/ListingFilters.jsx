@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Search, X } from "lucide-react";
 import { TOWNS, FLAT_TYPES } from "../utils/hdb";
 import { titleCase } from "../utils/format";
@@ -109,4 +110,4 @@ function ListingFilters({ filters, onChange, onReset, resultCount }) {
   );
 }
 
-export default ListingFilters;
+export default memo(ListingFilters);

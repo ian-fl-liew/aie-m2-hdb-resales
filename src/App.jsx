@@ -8,20 +8,22 @@ import Spinner from "./components/Spinner";
 import WelcomePage from "./pages/WelcomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import BrowsePage from "./pages/BrowsePage";
 import ListingDetailPage from "./pages/ListingDetailPage";
-import MyListingsPage from "./pages/MyListingsPage";
 import NewListingPage from "./pages/NewListingPage";
 import EditListingPage from "./pages/EditListingPage";
-import AgentsPage from "./pages/AgentsPage";
 import NewAgentPage from "./pages/NewAgentPage";
 import EditAgentPage from "./pages/EditAgentPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import "./App.css";
 
+const BrowsePage = lazy(() => import("./pages/BrowsePage"));
 // Code-split the assistant: it pulls in the AI client and the valuation
 // service, which nobody needs until they actually open the chat.
 const AssistantPage = lazy(() => import("./pages/AssistantPage"));
+// Loaded only when the user navigates to /app/my-listings
+const MyListingsPage = lazy(() => import("./pages/MyListingsPage"));
+// Loaded only when the user navigates to /app/agents
+const AgentsPage = lazy(() => import("./pages/AgentsPage"));
 
 function App() {
   return (
@@ -36,7 +38,14 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="app" element={<RootLayout />}>
             {/* Buyers */}
-            <Route index element={<BrowsePage />} />
+            <Route
+              index
+              element={
+                <Suspense fallback={<Spinner label="Loading listings…" />}>
+                  <BrowsePage />
+                </Suspense>
+              }
+            />
             <Route path="listings/:id" element={<ListingDetailPage />} />
 
             {/* Sellers */}

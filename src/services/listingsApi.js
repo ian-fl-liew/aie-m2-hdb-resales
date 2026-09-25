@@ -28,11 +28,23 @@ export const listingsApi = {
   create: (listing) =>
     request("/listings", { method: "POST", body: JSON.stringify(listing) }),
 
-  update: (id, updates) =>
-    request(`/listings/${id}`, {
-      method: "PATCH",
+  update: async (id, updates) => {
+    // NOTE: MockAPI's CORS preflight does not allow PATCH from a Netlify
+    // origin ("Method PATCH is not allowed by Access-Control-Allow-Methods"),
+    // while json-server locally does. PUT is allowed in both, so use a
+    // read-modify-write with PUT. The GET-merge matters because PUT replaces
+    // the whole resource — sending only `updates` would wipe ownerId/listedAt.
+    // const current = await request(`/listings/${id}`);
+    // const merged = { ...current, ...updates, id: current?.id ?? id };
+    // return request(`/listings/${id}`, {
+    //   method: "PUT",
+    //   body: JSON.stringify(merged),
+    // });
+    return request(`/listings/${id}`, {
+      method: "PUT",
       body: JSON.stringify(updates),
-    }),
+    });
+  },
 
   remove: (id) => request(`/listings/${id}`, { method: "DELETE" }),
 };

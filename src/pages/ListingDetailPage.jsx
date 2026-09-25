@@ -43,9 +43,23 @@ function ListingDetailPage() {
 
   const specs = [
     { icon: Building, label: "Flat type", value: titleCase(listing.flatType) },
-    { icon: Maximize, label: "Floor area", value: formatArea(listing.floorAreaSqm) },
+    {
+      icon: Maximize,
+      label: "Floor area",
+      value: formatArea(listing.floorAreaSqm),
+    },
     { icon: Layers, label: "Storey", value: listing.storeyRange },
-    { icon: Calendar, label: "Remaining lease", value: formatLease(remainingLease) },
+    {
+      icon: Calendar,
+      label: "Remaining lease",
+      value: formatLease(remainingLease),
+    },
+    {
+      icon: Calendar,
+      label: "Lease commence year",
+      value: listing.leaseCommenceYear,
+    },
+    { icon: Calendar, label: "Listed On", value: formatDate(listing.listedAt) },
   ];
 
   return (
@@ -88,8 +102,8 @@ function ListingDetailPage() {
           <div className={styles.priceBlock}>
             <span className={styles.price}>{formatPrice(listing.price)}</span>
             <span className={styles.psm}>
-              {formatPrice(Math.round(listing.price / listing.floorAreaSqm))} per
-              sqm
+              {formatPrice(Math.round(listing.price / listing.floorAreaSqm))}{" "}
+              per sqm
             </span>
           </div>
 

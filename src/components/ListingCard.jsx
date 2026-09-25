@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import { memo } from "react";
 import { MapPin, Maximize, Building } from "lucide-react";
 import { formatPrice, formatArea, titleCase } from "../utils/format";
 import styles from "./ListingCard.module.css";
@@ -90,4 +91,4 @@ function ListingCard({ listing, onDelete }) {
   );
 }
 
-export default ListingCard;
+export default memo(ListingCard);

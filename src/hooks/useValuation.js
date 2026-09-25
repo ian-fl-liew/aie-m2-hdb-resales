@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import { fetchComparables, fetchPriceHistory } from "../services/resaleApi";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchPriceHistory } from "../services/resaleApi";
 import { estimateValue, compareToListing } from "../services/valuation";
 import { remainingLeaseFromCommenceYear } from "../utils/hdb";
 
@@ -14,73 +15,49 @@ import { remainingLeaseFromCommenceYear } from "../utils/hdb";
  * @returns {{ valuation, comparison, comparables, loading, error }}
  */
 export function useValuation(listing) {
-  const [valuation, setValuation] = useState(null);
-  const [comparison, setComparison] = useState(null);
-  const [comparables, setComparables] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const {
+    block,
+    streetName,
+    flatType,
+    floorAreaSqm,
+    storeyRange,
+    leaseCommenceYear,
+    price,
+  } = listing ?? {};
+  const enabled = Boolean(block && streetName && flatType && floorAreaSqm);
 
-  // Depend on the individual fields rather than the object, so a new object
-  // identity with identical values does not refetch.
-  const { town, block, streetName, flatType, floorAreaSqm, storeyRange, leaseCommenceYear, price } =
-    listing ?? {};
+  const { data, isLoading, error: queryError } = useQuery({
+    queryKey: ["priceHistory", block, streetName, flatType],
+    queryFn: () => fetchPriceHistory({ block, streetName, flatType }),
+    enabled,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 1,
+  });
 
-  useEffect(() => {
-    if (!town || !block || !streetName || !flatType || !floorAreaSqm) return;
+  const valuation = useMemo(() => {
+    if (!data) return null;
+    return estimateValue(
+      {
+        floorAreaSqm,
+        storeyRange,
+        remainingLeaseYears:
+          remainingLeaseFromCommenceYear(leaseCommenceYear),
+      },
+      data.records,
+    );
+  }, [data, floorAreaSqm, storeyRange, leaseCommenceYear]);
 
-    const controller = new AbortController();
+  const comparison = useMemo(
+    () => compareToListing(valuation, price),
+    [valuation, price],
+  );
+  const comparables = data?.records.slice(0, 20) ?? [];
+  const error =
+    queryError?.message ??
+    (data && !valuation
+      ? "Not enough recent transactions for this address and flat type."
+      : null);
 
-    const run = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        // const { records } = await fetchComparables({
-        //   town,
-        //   flatType,
-        //   signal: controller.signal,
-        // });
-       
-        const { records } = await fetchPriceHistory({
-          block,
-          streetName,
-          flatType,
-        });
-
-        const result = estimateValue(
-          {
-            floorAreaSqm,
-            storeyRange,
-            remainingLeaseYears:
-              remainingLeaseFromCommenceYear(leaseCommenceYear),
-          },
-          records,
-        );
-
-        if (controller.signal.aborted) return;
-
-        if (!result) {
-          setError(
-            "Not enough recent transactions for this town and flat type.",
-          );
-          setValuation(null);
-          setComparison(null);
-        } else {
-          setValuation(result);
-          setComparison(compareToListing(result, price));
-          setComparables(records.slice(0, records.length < 20 ? records.length : 20));
-        }
-      } catch (err) {
-        if (err.name === "AbortError") return;
-        setError(err.message);
-      } finally {
-        if (!controller.signal.aborted) setLoading(false);
-      }
-    };
-
-    run();
-    return () => controller.abort();
-  }, [town, block, streetName, flatType, floorAreaSqm, storeyRange, leaseCommenceYear, price]);
-
-  return { valuation, comparison, comparables, loading, error };
+  return { valuation, comparison, comparables, loading: isLoading, error };
 }

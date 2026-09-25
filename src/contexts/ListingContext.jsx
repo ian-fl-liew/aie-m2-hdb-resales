@@ -5,6 +5,7 @@ import {
   useEffect,
   useMemo,
   useCallback,
+  useDeferredValue,
 } from "react";
 
 import { listingReducer, initialState } from "../reducers/listingReducer";
@@ -28,6 +29,8 @@ export function ListingProvider({ children }) {
   const { listings, loading, error, submitting } = state;
 
   const [filters, setFilters] = useState(emptyFilters);
+  const { searchTerm, town, flatType, minPrice, maxPrice, sortBy } = filters;
+  const deferredSearchTerm = useDeferredValue(searchTerm);
 
   // ---- Load once on mount ----
   useEffect(() => {
@@ -53,17 +56,15 @@ export function ListingProvider({ children }) {
   }, []);
 
   // ---- Derived: the filtered + sorted view ----
-  // useMemo so we are not re-filtering the whole list on unrelated re-renders.
+  // Defer text-search work so typing remains responsive as the dataset grows.
   const filteredListings = useMemo(() => {
-    const term = filters.searchTerm.trim().toLowerCase();
+    const term = deferredSearchTerm.trim().toLowerCase();
 
     const matched = listings.filter((l) => {
-      if (filters.town && l.town !== filters.town) return false;
-      if (filters.flatType && l.flatType !== filters.flatType) return false;
-      if (filters.minPrice && Number(l.price) < Number(filters.minPrice))
-        return false;
-      if (filters.maxPrice && Number(l.price) > Number(filters.maxPrice))
-        return false;
+      if (town && l.town !== town) return false;
+      if (flatType && l.flatType !== flatType) return false;
+      if (minPrice && Number(l.price) < Number(minPrice)) return false;
+      if (maxPrice && Number(l.price) > Number(maxPrice)) return false;
 
       if (term) {
         const haystack =
@@ -80,8 +81,16 @@ export function ListingProvider({ children }) {
       "area-desc": (a, b) => b.floorAreaSqm - a.floorAreaSqm,
     };
 
-    return [...matched].sort(sorters[filters.sortBy] ?? sorters.newest);
-  }, [listings, filters]);
+    return [...matched].sort(sorters[sortBy] ?? sorters.newest);
+  }, [
+    listings,
+    deferredSearchTerm,
+    town,
+    flatType,
+    minPrice,
+    maxPrice,
+    sortBy,
+  ]);
 
   // ---- Filter helpers ----
   const updateFilter = useCallback((name, value) => {

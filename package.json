@@ -16,6 +16,7 @@
     "test:watch": "vitest --watch"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.103.2",
     "lucide-react": "^1.41.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

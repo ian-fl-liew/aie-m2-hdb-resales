@@ -77,6 +77,10 @@ function EditListingPage() {
           price: String(listing.price ?? ""),
           description: listing.description ?? "",
           imageUrl: listing.imageUrl ?? "",
+          ownerId: listing.ownerId ?? "",
+          ownerName: listing.ownerName ?? "",
+          status: listing.status ?? "",
+          listedAt: listing.listedAt ?? "",
         }}
         onSubmit={handleSubmit}
         submitting={submitting}
