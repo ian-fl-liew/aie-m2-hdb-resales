@@ -61,16 +61,18 @@ function App() {
             <Route path="my-listings/:id/edit" element={<EditListingPage />} />
 
             {/* Shared agent directory */}
-            <Route
-              path="agents"
-              element={
-                <Suspense fallback={<Spinner label="Loading agents…" />}>
-                  <AgentsPage />
-                </Suspense>
-              }
-            />
-            <Route path="agents/new" element={<NewAgentPage />} />
-            <Route path="agents/:id/edit" element={<EditAgentPage />} />
+            <Route element={<ProtectedRoute requiredRole="admin" />}>
+              <Route
+                path="agents"
+                element={
+                  <Suspense fallback={<Spinner label="Loading agents…" />}>
+                    <AgentsPage />
+                  </Suspense>
+                }
+              />
+              <Route path="agents/new" element={<NewAgentPage />} />
+              <Route path="agents/:id/edit" element={<EditAgentPage />} />
+            </Route>
 
             {/* AI assistant */}
             <Route

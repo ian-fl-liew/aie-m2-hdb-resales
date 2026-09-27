@@ -91,8 +91,9 @@ export function fetchComparables({ town, flatType, signal }) {
 }
 
 // Build HDB datastore_search URL — same logic as HdbContext but reusable for Price History
-export function buildHdbUrl({ block, streetName, flatType }) {
+export function buildHdbUrl({ town, block, streetName, flatType, limit = FIXED_LIMIT }) {
   const filters = {};
+  if (town) filters.town = { type: "ILIKE", value: String(town) };
   if (block) filters.block = { type: "ILIKE", value: String(block) };
   if (streetName)
     filters.street_name = { type: "ILIKE", value: String(streetName) };
@@ -105,18 +106,20 @@ export function buildHdbUrl({ block, streetName, flatType }) {
   // const offset = 0;
   // url += `&offset=${offset}`;
   url += `&sort=${encodeURIComponent(FIXED_SORT)}`;
-  url += `&limit=${FIXED_LIMIT}`;
+  url += `&limit=${limit}`;
   return url;
 }
 
 // Fetch price history for a given address — used by PriceHistory component
 export async function fetchPriceHistory({
+  town,
   block,
   streetName,
   flatType,
+  limit,
   signal,
 }) {
-  const url = buildHdbUrl({ block, streetName, flatType });
+  const url = buildHdbUrl({town, block, streetName, flatType, limit });
   let response;
   try {
     response = await fetch(url, { signal });

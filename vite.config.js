@@ -9,5 +9,7 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: "./src/test/setup.js",
+    // Tests always use the scripted assistant, whatever .env says.
+    env: { VITE_AI_PROVIDER: "mock" },
   },
 });

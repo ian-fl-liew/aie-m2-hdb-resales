@@ -1,16 +1,19 @@
 import { useState, useRef, useEffect } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { Send, Sparkles } from "lucide-react";
 import { sendMessage, isMockProvider } from "../services/ai";
 import { useListings } from "../hooks/useListings";
+import { titleCase } from "../utils/format";
 import styles from "./ChatPanel.module.css";
 
-const SUGGESTIONS = [
-  "4 room in Tampines under 600k",
-  "Show me 5 room flats in Punggol",
-  "Is listing l3 fairly priced?",
-];
-
+const buildSuggestions = (town) => {
+  const place = titleCase(town || "TAMPINES");
+  return [
+  `4 room in ${place} under 600k`,
+  `Show me 5 room flats in ${place}`,
+  `What is the fair price by flat type in ${place}?`,
+  ];
+};
 const GREETING = {
   role: "assistant",
   content:
@@ -19,7 +22,9 @@ const GREETING = {
 };
 
 function ChatPanel() {
-  const { listings } = useListings();
+  const { listings, lastTown, setLastTown } = useListings();
+  const [searchParams] = useSearchParams();
+  const currentListingId = searchParams.get("listing");
   const [messages, setMessages] = useState([GREETING]);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
@@ -46,7 +51,12 @@ function ChatPanel() {
 
     try {
       // The assistant only ever sees the listings we hand it here.
-      const reply = await sendMessage(nextMessages, { listings });
+      const reply = await sendMessage(nextMessages, { listings, currentListingId });
+      
+      const searchedTown = (reply.toolCalls ?? []).find((call) => call.name === "search_listings" && call.args?.town,
+      )?.args.town;
+      if (searchedTown) setLastTown(String(searchedTown).toUpperCase());
+      
       setMessages((prev) => [
         ...prev,
         {
@@ -95,7 +105,7 @@ function ChatPanel() {
 
       {messages.length === 1 && (
         <div className={styles.suggestions}>
-          {SUGGESTIONS.map((suggestion) => (
+          {buildSuggestions(lastTown).map((suggestion) => (
             <button
               key={suggestion}
               type="button"
@@ -144,8 +154,15 @@ function Message({ message }) {
 
   // Pull listing ids out of whatever the tools actually returned, so the links
   // can never point at a listing that does not exist.
-  const linkedListings = (message.toolCalls ?? []).flatMap(
-    (call) => call.result?.listings ?? [],
+  const allListings = (
+    message.toolCalls ?? []).flatMap(
+    (call) =>
+      call.result?.listings ?? (call.result?.listing ? [call.result.listing] : []),
+  );
+
+    // The same listing can come back from several tool calls; show it once.
+  const linkedListings = allListings.filter(
+    (l, index) => allListings.findIndex((x) => x.id === l.id) === index,
   );
 
   return (
@@ -162,7 +179,7 @@ function Message({ message }) {
               to={`/app/listings/${l.id}`}
               className={styles.link}
             >
-              View {l.id}
+              View {l.title}
             </Link>
           ))}
         </div>

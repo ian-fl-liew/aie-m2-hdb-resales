@@ -90,10 +90,15 @@ function LoginPage() {
         </p>
 
         <p className={styles.hint}>
-          Demo accounts — buyer: <code>b1@b.com</code> / <code>123</code>
+          Demo accounts
           <br />
-          seller: <code>s1@s.com</code> / <code>123</code>
+          buyer: <code>buyer@buyer.com</code> / <code>123</code>
+          <br />
+          seller: <code>seller@seller.com</code> / <code>123</code>
+          <br />
+          admin: <code>admin@admin.com</code> / <code>123</code>
         </p>
+        
       </div>
     </div>
   );

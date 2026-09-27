@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+// import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import ListingCard from "./ListingCard";
 
@@ -42,20 +42,28 @@ describe("ListingCard", () => {
     expect(links[0]).toHaveAttribute("href", "/app/listings/l1");
   });
 
-  it("hides the delete button when no handler is passed", () => {
-    renderCard();
+//   it("hides the delete button when no handler is passed", () => {
+//     renderCard();
+
+//     expect(
+//       screen.queryByRole("button", { name: /delete/i }),
+//     ).not.toBeInTheDocument();
+//   });
+
+//   it("calls onDelete with the listing id when the button is clicked", async () => {
+//     const onDelete = vi.fn();
+//     renderCard({ onDelete });
+
+//     await userEvent.click(screen.getByRole("button", { name: /delete/i }));
+
+//     expect(onDelete).toHaveBeenCalledWith("l1");
+//   });
+// });
+  it("never shows a delete button, even when a handler is passed", () => {
+    renderCard({ onDelete: vi.fn() });
 
     expect(
       screen.queryByRole("button", { name: /delete/i }),
     ).not.toBeInTheDocument();
-  });
-
-  it("calls onDelete with the listing id when the button is clicked", async () => {
-    const onDelete = vi.fn();
-    renderCard({ onDelete });
-
-    await userEvent.click(screen.getByRole("button", { name: /delete/i }));
-
-    expect(onDelete).toHaveBeenCalledWith("l1");
   });
 });

@@ -25,7 +25,7 @@ function ListingCard({ listing }) {
     price,
     imageUrl,
     imageUrls,
-    status,
+    status= "available",
   } = listing;
 
   // support both legacy `imageUrl` and new `imageUrls` array

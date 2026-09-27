@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router";
 import imagePlaceholder from "../assets/placeholder.png";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   MapPin,
   Building,
@@ -26,13 +26,18 @@ import styles from "./ListingDetailPage.module.css";
 
 function ListingDetailPage() {
   const { id } = useParams();
-  const { getListingById, updateListing, loading } = useListings();
+  const { getListingById, updateListing, loading, setLastTown } = useListings();
   const { user } = useAuth();
   const [activeImg, setActiveImg] = useState(0);
 
-  if (loading) return <Spinner />;
-
   const listing = getListingById(id);
+  const viewedTown = listing?.town;
+
+  useEffect(() => {
+    if (viewedTown) setLastTown(viewedTown);
+  }, [viewedTown, setLastTown]);
+
+  if (loading) return <Spinner />;
 
   if (!listing) {
     return (
@@ -62,11 +67,12 @@ function ListingDetailPage() {
   const cover = images[0] || imagePlaceholder;
   const thumbs = images.slice(1, 5);
 
-  const isAvailable = listing.status.toLowerCase() === "available";
+  const isAvailable = String(listing.status ?? "available").toLowerCase() === "available";
 
   const handleMarkSold = async () => {
-    if (isSold) return;
-    await updateListing(listing.id, { ...listing, status: "Sold" });
+    // if (isSold) return;
+    if (!isOwner || isSold) return; // only the owner can mark as sold
+    await updateListing(listing.id, { ...listing, status: "sold" });
   };
 
   const specs = [
@@ -102,7 +108,12 @@ function ListingDetailPage() {
       {/* Gallery — PG style: large left + 2x2 right */}
       <div className={styles.gallery}>
         <div className={styles.mainImg}>
-          <img src={images[activeImg] || cover} alt={listing.title} />
+          <img src={images[activeImg] || cover} 
+              alt={listing.title} 
+              onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = imagePlaceholder;
+            }}/>
           <span className={styles.countPill}>
             <Camera
               size={12}
@@ -166,7 +177,7 @@ function ListingDetailPage() {
                   className="btn-danger"
                   onClick={handleMarkSold}
                   disabled={isSold}
-                  show={isSold.toString()}
+                  // show={isSold.toString()}   # bug fix
                   aria-label={`${isSold ? "Sold" : "Mark as Sold"}: ${listing.status}`}
                 >
                   {isSold ? (
@@ -219,7 +230,10 @@ function ListingDetailPage() {
 
           <div className={styles.assistantPrompt}>
             <p>Want a second opinion on this price?</p>
-            <Link to="/app/assistant" className="btn-secondary">
+            <Link
+              to={`/app/assistant?listing=${listing.id}`}
+              className="btn-secondary"
+            >
               Ask the assistant
             </Link>
           </div>
