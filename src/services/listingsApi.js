@@ -51,11 +51,17 @@ export const listingsApi = {
 
 export const usersApi = {
   /** json-server supports ?field=value filtering, which is all we need. */
+  // findByEmail: async (email) => {
+  //   const matches = await request(
+  //     `/users?email=${encodeURIComponent(email.toLowerCase())}`,
+  //   );
+  //   return Array.isArray(matches) ? matches[0] : matches;
+  // },
   findByEmail: async (email) => {
-    const matches = await request(
-      `/users?email=${encodeURIComponent(email.toLowerCase())}`,
-    );
-    return Array.isArray(matches) ? matches[0] : matches;
+    const wanted = email.toLowerCase();
+    const matches = await request(`/users?email=${encodeURIComponent(wanted)}`);
+    const list = Array.isArray(matches) ? matches : [matches];
+    return list.find((u) => u?.email?.toLowerCase() === wanted) ?? null;
   },
 
   create: (user) =>

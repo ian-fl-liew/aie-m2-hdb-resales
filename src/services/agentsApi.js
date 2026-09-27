@@ -14,17 +14,45 @@ async function request(path, options = {}) {
   return text ? JSON.parse(text) : null;
 }
 
+// export const agentsApi = {
+//   getAll: (signal) => request("/agents", { signal }),
+
+//   create: (agent) =>
+//     request("/agents", { method: "POST", body: JSON.stringify(agent) }),
+
+//   update: (id, updates) =>
+//     request(`/agents/${id}`, {
+//       method: "PATCH",
+//       body: JSON.stringify(updates),
+//     }),
+
+//   remove: (id) => request(`/agents/${id}`, { method: "DELETE" }),
+// };
+
+/** Agents are stored as users with role "agent" (MockAPI's free plan allows two resources). */
 export const agentsApi = {
-  getAll: (signal) => request("/agents", { signal }),
+  getAll: async (signal) => {
+    const users = await request("/users", { signal });
+    // Filter here rather than with ?role=agent: MockAPI matches query
+    // filters partially, so an exact check in code is safer.
+    return (users ?? []).filter((u) => u.role === "agent");
+  },
 
   create: (agent) =>
-    request("/agents", { method: "POST", body: JSON.stringify(agent) }),
-
-  update: (id, updates) =>
-    request(`/agents/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(updates),
+    request("/users", {
+      method: "POST",
+      body: JSON.stringify({ ...agent, role: "agent" }),
     }),
 
-  remove: (id) => request(`/agents/${id}`, { method: "DELETE" }),
+  update: async (id, updates) => {
+    // MockAPI blocks PATCH from browsers (CORS), and PUT replaces the whole
+    // record, so read it, merge the changes, and write it back.
+    const current = await request(`/users/${id}`);
+    return request(`/users/${id}`, {
+      method: "PUT",
+      body: JSON.stringify({ ...current, ...updates, role: "agent" }),
+    });
+  },
+
+  remove: (id) => request(`/users/${id}`, { method: "DELETE" }),
 };
