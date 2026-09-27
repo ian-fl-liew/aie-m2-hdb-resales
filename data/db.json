@@ -858,27 +858,30 @@
       "id": "nttFPlkDav4"
     },
     {
-      "title": "62 Dakota Crescent, Eunos / Geylang / Paya Lebar",
-      "town": "KALLANG/WHAMPOA",
-      "flatType": "MULTI-GENERATION",
-      "block": "888",
-      "streetName": "Kallang 8",
-      "storeyRange": "16 TO 18",
-      "floorAreaSqm": 100,
-      "flatModel": "Maisonette",
-      "leaseCommenceYear": 1978,
-      "price": 1399999,
-      "description": "Rarely available maisonette at Block 62 Dakota Crescent.\nHighly sought after for its proximity and sheltered walk to Dakota MRT Station, accessibility and proximity to the city.\n\nWithin 1km to Kong Hwa School\nNestled next to Geylang Park Connector, jog or cycle by the waterfront.\nNear Old Airport Road food centre / hawker, be pampered by choices of cuisines.\n\n#maisonette\n#duplex\n#5 room\n#Kong Hwa\n#Dakota MRT Station\n#Old Airport Road\n#Pine Close\n#Mountbatten\n#Kallang",
-      "imageUrl": "https://www.propertyguru.com.sg/listing/hdb-for-sale-62-dakota-crescent-500210607",
-      "imageUrls": [
-        "https://www.propertyguru.com.sg/listing/hdb-for-sale-62-dakota-crescent-500210607",
-        "https://www.propertyguru.com.sg/listing/hdb-for-sale-62-dakota-crescent-500210607#"
-      ],
+      "title": "93B Telok Blangah Street 31",
+      "town": "BUKIT MERAH",
+      "flatType": "4 ROOM",
+      "block": "93B",
+      "streetName": "TELOK BLANGAH ST 31",
+      "storeyRange": "40 TO 42",
+      "floorAreaSqm": 137,
+      "flatModel": "New Generation",
+      "leaseCommenceYear": 2018,
+      "price": 1999999,
+      "description": "91 year remaining lease jumbo hdb\nDiscover an exceptional opportunity to acquire a massive, move-in-ready home in one of Singapore’s most sought-after city-fringe locations. Spanning an expansive 1,463 sq ft, this rare Jumbo HDB layout offers the size and spatial flexibility rarely found in modern developments. \n\nKey Property Features\nSubstantial Living Space: Generous 1,463 sq ft layout boasting 5 bedrooms and 4 bathrooms, ideal for multi-generational families or flexible dual-living setups. Option for up to 7 bedrooms\nLong Lease Term: ~91 years remaining lease offers long-term security, strong value retention, and ease of financing. \nPartially Furnished & Air-Conditioned: Equipped with air conditioning throughout and fittings furnished, allowing for immediate move-in without major effort or delay. \n\nStrategic Location & Connectivity\nCommuter Convenience: Minutes away from Telok Blangah MRT (Circle Line), offering direct routes to major hubs like HarbourFront, Buona Vista, and one-north.\n\nLifestyle & Retail: Easy access to daily essentials and dining at Telok Blangah Market and Food Centre, VivoCity, HarbourFront Centre, and local food centres.\n\nNature at Your Doorstep: Surrounded by lush green corridors along the Southern Ridges, including Telok Blangah Hill Park, Mount Faber, and Labrador Nature Reserve.\nGrowth Potential: Located right on the fringe of the Greater Southern Waterfront (GSW) transformation, securing strong future capital value as the region develops.\nA rare combination of size, location, and accessibility. Ideal for buyers seeking a spacious city-fringe sanctuary.",
+      "imageUrl": "https://sg-rpfs.pgimgs.com/listing/500267105/UPHO.161516972.V800/93B-Telok-Blangah-Street-31-Harbourfront-Telok-Blangah-Singapore.jpg",
+      "ownerId": "4",
+      "ownerName": "Ms. Admin",
       "status": "available",
-      "ownerId": "u1",
-      "ownerName": "Mr Buyer",
       "listedAt": "2026-09-27",
-      "id": "b5H6dho9Cj0"
+      "id": "1",
+      "imageUrls": [
+        "https://sg-rpfs.pgimgs.com/listing/500267105/UPHO.161516972.V800/93B-Telok-Blangah-Street-31-Harbourfront-Telok-Blangah-Singapore.jpg",
+        "https://sg1-cdn.pgimgs.com/listing/500267105/UPHO.161558615.V800/93B-Telok-Blangah-Street-31-Harbourfront-Telok-Blangah-Singapore.jpg",
+        "https://sg1-cdn.pgimgs.com/listing/500267105/UPHO.161562464.V800/93B-Telok-Blangah-Street-31-Harbourfront-Telok-Blangah-Singapore.jpg",
+        "https://sg1-cdn.pgimgs.com/listing/500267105/UPHO.161516968.V1024/93B-Telok-Blangah-Street-31-Harbourfront-Telok-Blangah-Singapore.jpg",
+        "https://sg1-cdn.pgimgs.com/listing/500267105/UPHO.161516969.V1024.jpg"
+      ]
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
