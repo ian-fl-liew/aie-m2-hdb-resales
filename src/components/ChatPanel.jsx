@@ -63,6 +63,7 @@ function ChatPanel() {
           role: "assistant",
           content: reply.content,
           toolCalls: reply.toolCalls ?? [],
+          fallback: reply.fallback ?? false,
         },
       ]);
     } catch (err) {
@@ -170,6 +171,13 @@ function Message({ message }) {
       className={`${styles.message} ${isUser ? styles.user : styles.assistant}`}
     >
       <div className={styles.bubble}>{renderText(message.content)}</div>
+
+      {message.fallback && (
+        <p className={styles.providerNote}>
+          The live assistant is busy, so this is the offline assistant's answer.
+          Listing and price data are real.
+        </p>
+      )}
 
       {linkedListings.length > 0 && (
         <div className={styles.links}>

@@ -43,6 +43,12 @@ import { TOOL_DEFS, runTool } from "./tools";
 
 /** Stop runaway loops if the model keeps asking for tools. */
 const MAX_TOOL_ROUNDS = 4;
+/** When the provider is overloaded (503), try once more before giving up. */
+const MAX_ATTEMPTS = 2;
+const RETRY_DELAY_MS = 2000;
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 
 /**
  * @param {object[]} messages  [{ role, content }]
@@ -114,16 +120,31 @@ async function callApi(messages) {
   // Ollama needs no key; hosted providers do.
   if (AI_API_KEY) headers.Authorization = `Bearer ${AI_API_KEY}`;
 
-  const response = await fetch(`${AI_BASE_URL}/chat/completions`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      model: AI_MODEL,
-      messages,
-      tools: TOOL_DEFS,
-      temperature: 0.3,
-    }),
-  });
+  const send = () =>
+    fetch(`${AI_BASE_URL}/chat/completions`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        model: AI_MODEL,
+        messages,
+        tools: TOOL_DEFS,
+        temperature: 0.3,
+      }),
+    });
+
+  // An overloaded model (503) usually recovers within seconds, so retry
+  // before bothering the user.
+  let response = await send();
+  for (let attempt = 1; attempt < MAX_ATTEMPTS && response.status === 503; attempt++) {
+    await wait(RETRY_DELAY_MS);
+    response = await send();
+  }
+
+  if (response.status === 503) {
+    throw new Error(
+      "The AI service is busy right now. Please try again in a minute.",
+    );
+  }
 
   if (response.status === 429) {
     throw new Error(

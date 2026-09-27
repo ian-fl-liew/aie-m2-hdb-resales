@@ -20,7 +20,7 @@ export const isMockProvider = AI_PROVIDER === "mock";
  * @param {object}   ctx      { listings } — live data the tools search over
  * @returns {Promise<{ content: string, toolCalls: {name, args, result}[] }>}
  */
-export function sendMessage(messages, ctx) {
+export async function sendMessage(messages, ctx) {
   const provider = providers[AI_PROVIDER];
 
   if (!provider) {
@@ -29,5 +29,19 @@ export function sendMessage(messages, ctx) {
     );
   }
 
-  return provider.sendMessage(messages, ctx);
+  if (provider === mockProvider) {
+    return mockProvider.sendMessage(messages, ctx);
+  }
+
+  try {
+    return await provider.sendMessage(messages, ctx);
+  } catch (err) {
+    // Every live model failed (busy, rate-limited or unreachable). Answer
+    // with the scripted assistant instead; it still uses the real tools, so
+    // any listings and prices it shows are genuine.
+    console.warn("Live AI failed, using the offline assistant:", err.message);
+    const reply = await mockProvider.sendMessage(messages, ctx);
+    return { ...reply, fallback: true };
+  }
 }
+
