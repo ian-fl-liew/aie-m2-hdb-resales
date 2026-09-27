@@ -6,13 +6,16 @@ import styles from "./Sidebar.module.css";
 const NAV_ITEMS = [
   { to: "/app", label: "Browse", icon: Home, end: true },
   { to: "/app/my-listings", label: "My Listings", icon: Building2 },
-  { to: "/app/agents", label: "Agents", icon: Users },
+  { to: "/app/agents", label: "Agents", icon: Users, roles: ["admin"] },
   { to: "/app/assistant", label: "AI Assistant", icon: Sparkles },
 ];
 
 function Sidebar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const visibleNavItems = NAV_ITEMS.filter(
+    (item) => !item.roles || item.roles.includes(user?.role)
+  );
 
   const handleLogout = () => {
     logout();
@@ -27,7 +30,7 @@ function Sidebar() {
       </div>
 
       <ul className={styles.navList}>
-        {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
+        {visibleNavItems.map(({ to, label, icon: Icon, end }) => (
           <li key={to}>
             {/* NavLink gives us the active state for free */}
             <NavLink

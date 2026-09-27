@@ -21,6 +21,7 @@ vi.mock("../components/ValuationPanel", () => ({
 const listing = {
   id: "l1",
   ownerId: "u1",
+  status: "available",
   title: "Bright 4 room in Tampines",
   town: "TAMPINES",
   flatType: "4 ROOM",
@@ -46,6 +47,7 @@ function renderPage({
   useListings.mockReturnValue({
     getListingById: vi.fn().mockReturnValue(currentListing),
     updateListing,
+    setLastTown: vi.fn(),
     loading: false,
   });
 
@@ -68,7 +70,7 @@ describe("ListingDetailPage", () => {
     expect(
       screen.getByRole("button", { name: /mark as sold/i }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Sold")).toBeInTheDocument();
+    expect(screen.getByText("Available")).toBeInTheDocument();
   });
 
   it("hides the sold button from other users", () => {

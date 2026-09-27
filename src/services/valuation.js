@@ -20,6 +20,22 @@
 
 import { storeyMidpoint, leaseToYears } from "../utils/hdb";
 
+
+/** Sales older than this are ignored: prices have moved too much since. */
+const MAX_COMPARABLE_AGE_MONTHS = 24;
+
+/** "YYYY-MM" for the month `months` before `now`. */
+function monthsAgo(months, now) {
+  const d = new Date(now.getFullYear(), now.getMonth() - months, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+/** Keep only sales from the last MAX_COMPARABLE_AGE_MONTHS months. */
+export function recentOnly(records, now = new Date()) {
+  const cutoff = monthsAgo(MAX_COMPARABLE_AGE_MONTHS, now);
+  return (records ?? []).filter((r) => String(r.month ?? "") >= cutoff);
+}
+
 /** Roughly how much one extra floor is worth, as a fraction of price. */
 const PER_FLOOR_UPLIFT = 0.006; // 0.6%
 const MAX_STOREY_ADJUSTMENT = 0.08; // never move more than ±8% on height
@@ -117,8 +133,8 @@ export function toComparablePoints(records) {
  *   basis: { medianStorey: number|null, medianLeaseYears: number|null, latestMonth: string|null }
  * }}
  */
-export function estimateValue(subject, records) {
-  const points = toComparablePoints(records);
+export function estimateValue(subject, records, now = new Date()) {
+  const points = toComparablePoints(recentOnly(records, now));
 
   // No usable comparables — say so rather than inventing a number.
   if (points.length === 0 || !subject?.floorAreaSqm) return null;

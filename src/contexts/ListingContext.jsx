@@ -29,6 +29,9 @@ export function ListingProvider({ children }) {
   const { listings, loading, error, submitting } = state;
 
   const [filters, setFilters] = useState(emptyFilters);
+  // The town the user most recently filtered by, opened, or asked the
+  // assistant about. Drives the assistant's suggestions.
+  const [lastTown, setLastTown] = useState("");  
   const { searchTerm, town, flatType, minPrice, maxPrice, sortBy } = filters;
   const deferredSearchTerm = useDeferredValue(searchTerm);
 
@@ -95,6 +98,7 @@ export function ListingProvider({ children }) {
   // ---- Filter helpers ----
   const updateFilter = useCallback((name, value) => {
     setFilters((prev) => ({ ...prev, [name]: value }));
+    if (name === "town" && value) setLastTown(value);
   }, []);
 
   const resetFilters = useCallback(() => setFilters(emptyFilters), []);
@@ -171,6 +175,8 @@ export function ListingProvider({ children }) {
         filters,
         updateFilter,
         resetFilters,
+        lastTown,
+        setLastTown,
         addListing,
         updateListing,
         deleteListing,

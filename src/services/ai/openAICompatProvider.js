@@ -56,9 +56,14 @@ export async function sendMessage(messages, ctx) {
     );
   }
 
+  const systemPrompt = ctx.currentListingId
+    ? `${SYSTEM_PROMPT}\n\nThe user opened this chat from listing ${ctx.currentListingId}. When they say "this listing" or "this flat", they mean that one`
+    : SYSTEM_PROMPT;
+    
+
   // The running transcript we send to the model, including tool results.
   const convo = [
-    { role: "system", content: SYSTEM_PROMPT },
+    { role: "system", content: systemPrompt },
     ...messages.map((m) => ({ role: m.role, content: m.content })),
   ];
 
@@ -120,6 +125,12 @@ async function callApi(messages) {
     }),
   });
 
+  if (response.status === 429) {
+    throw new Error(
+      "The AI assistant has hit its usage limit. Please try again later.",
+    );
+  }
+  
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
     throw new Error(
@@ -128,6 +139,14 @@ async function callApi(messages) {
   }
 
   const body = await response.json();
+  // OpenRouter can answer HTTP 200 with an error inside the body (e.g. the
+  // upstream model is overloaded), so check for that before reading choices.
+  if (body.error) {
+    throw new Error(
+      `AI service error: ${body.error.message ?? "unknown error"}. Try again in a moment.`,
+    );
+  }
+
   const message = body.choices?.[0]?.message;
 
   if (!message) {

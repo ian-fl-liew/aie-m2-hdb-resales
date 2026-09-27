@@ -53,7 +53,7 @@ const listings = [
 function renderChat() {
   return render(
     <MemoryRouter>
-      <ListingContext.Provider value={{ listings }}>
+      <ListingContext.Provider value={{ listings, lastTown: "", setLastTown: () => {} }}>  
         <ChatPanel />
       </ListingContext.Provider>
     </MemoryRouter>,
@@ -78,9 +78,9 @@ describe("ChatPanel with the offline assistant", () => {
 
     // Only l1 is a 4-room in Tampines under 600k.
     expect(await screen.findByText(/I found 1 listing/i)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /view l1/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /bright 4 room in tampines/i })).toBeInTheDocument();
     expect(
-      screen.queryByRole("link", { name: /view l3/i }),
+      screen.queryByRole("link", { name: /pricey 4 room in tampines/i }),
     ).not.toBeInTheDocument();
   });
 
@@ -109,7 +109,7 @@ describe("ChatPanel with the offline assistant", () => {
     );
     await user.click(screen.getByRole("button", { name: /send/i }));
 
-    const link = await screen.findByRole("link", { name: /view l2/i });
+    const link = await screen.findByRole("link", { name: /executive flat in woodlands/i });
     expect(link).toHaveAttribute("href", "/app/listings/l2");
   });
 

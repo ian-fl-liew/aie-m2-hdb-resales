@@ -10,7 +10,7 @@
 // real provider and the mock one, so both paths produce identical data.
 
 import { fetchPriceHistory } from "../resaleApi";
-import { estimateValue, compareToListing } from "../valuation";
+import { estimateValue, compareToListing, median, recentOnly } from "../valuation";
 import { remainingLeaseFromCommenceYear } from "../../utils/hdb";
 
 export const TOOL_DEFS = [
@@ -59,7 +59,30 @@ export const TOOL_DEFS = [
             description: "The id of the listing to value.",
           },
         },
+        scope: {
+          type: "string",
+          enum: ["address", "town"],
+          description: 'Which sales to benchmark against. "address" (default): same block and street. "town": the same flat type anywhere in the listing\'s town. Use "town" when the user asks to compare with the town, estate or area.',
+        },
         required: ["listingId"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "town_price_summary",
+      description:
+        "Typical recent resale prices in one HDB town, broken down by flat type, from real HDB transactions. Use when the user asks about fair prices, typical prices or the price range in a town, without naming a specific listing.",
+      parameters: {
+        type: "object",
+        properties: {
+          town: {
+            type: "string",
+            description: 'HDB town in uppercase, e.g. "CLEMENTI".',
+          },
+        },
+        required: ["town"],
       },
     },
   },
@@ -79,26 +102,51 @@ export async function runTool(name, args, ctx) {
       return searchListings(args ?? {}, ctx);
     case "value_listing":
       return valueListing(args ?? {}, ctx);
+    case "town_price_summary":
+      return townPriceSummary(args ?? {});      
     default:
       return { error: `Unknown tool: ${name}` };
   }
 }
 
-function searchListings({ town, flatType, maxPrice, minPrice }, { listings }) {
-  const matches = (listings ?? []).filter((l) => {
-    if (l.status && l.status !== "available") return false;
+function filterListings(listings, {
+  town,
+  flatType,
+  maxPrice,
+  minPrice }) {
+  return (listings ?? []).filter((l) => {
+    if (l.status && l.status.toLowerCase() !== "available") return false;
     if (town && l.town !== String(town).toUpperCase()) return false;
     if (flatType && l.flatType !== String(flatType).toUpperCase()) return false;
     if (maxPrice && Number(l.price) > Number(maxPrice)) return false;
     if (minPrice && Number(l.price) < Number(minPrice)) return false;
     return true;
   });
+}
+
+function searchListings(args, { listings }) {
+  let matches = filterListings(listings, args)
+  let relaxed = null;
+
+  if (matches.length === 0 && args.flatType) {
+    matches = filterListings(listings, { ...args, flatType: undefined });
+    if (matches.length > 0) relaxed = "flatType";
+  }
+  if (matches.length === 0 && args.town) {
+    matches = filterListings(listings, { ...args, town: undefined });
+    if (matches.length > 0) relaxed = "town";
+  }
 
   // Cheapest first, and cap it — a long list wastes tokens and overwhelms the
   // reader. The UI shows the full set anyway.
   const top = [...matches].sort((a, b) => a.price - b.price).slice(0, 6);
 
   return {
+    exactMatch: relaxed === null,
+    relaxed,
+    note: relaxed
+      ? `Nothing matched exactly. These listings ignore the ${relaxed === "flatType" ? "flat type" : "town"} but keep the other criteria.`
+      : undefined,
     matchCount: matches.length,
     listings: top.map((l) => ({
       id: l.id,
@@ -113,9 +161,9 @@ function searchListings({ town, flatType, maxPrice, minPrice }, { listings }) {
       remainingLeaseYears: remainingLeaseFromCommenceYear(l.leaseCommenceYear),
     })),
   };
-}
+};
 
-async function valueListing({ listingId }, { listings }) {
+async function valueListing({ listingId, scope = "address" }, { listings }) {
   const listing = (listings ?? []).find(
     (l) => String(l.id) === String(listingId),
   );
@@ -123,16 +171,26 @@ async function valueListing({ listingId }, { listings }) {
     return { error: `No listing found with id ${listingId}.` };
   }
 
+  const byTown = scope === "town";
+  console.log(`Valuing listing ${listingId} with scope ${scope}`);
+
+  const compareAgainst = byTown
+    ? `recent ${listing.flatType} sales across ${listing.town}`
+    : `recent ${listing.flatType} sales at Blk ${listing.block} ${listing.streetName}`;
   try {
     // const { records } = await fetchComparables({
     //   town: listing.town,
     //   flatType: listing.flatType,
     // });
-    const { records } = await fetchPriceHistory({
-      block: listing.block,
-      streetName: listing.streetName,
-      flatType: listing.flatType,
-    });
+    const { records } = await fetchPriceHistory(
+      byTown
+        ? { town: listing.town, flatType: listing.flatType }
+        : {
+          block: listing.block,
+          streetName: listing.streetName,
+          flatType: listing.flatType,
+        },
+    );
 
     const valuation = estimateValue(
       {
@@ -147,14 +205,30 @@ async function valueListing({ listingId }, { listings }) {
 
     if (!valuation) {
       return {
-        error:
-          "Not enough recent transactions for this town and flat type to value it.",
+        error: `Not enough ${compareAgainst} to value it.`,
       };
     }
 
     const comparison = compareToListing(valuation, listing.price);
 
+    // Other flats for sale on this site right now: same town and flat type.
+    const peers = filterListings(listings, {
+      town: listing.town,
+      flatType: listing.flatType,
+    }).filter((l) => l.id !== listing.id);
+
+    const otherListings = {
+      count: peers.length,
+      medianAskingPrice: peers.length
+        ? median(peers.map((l) => Number(l.price)))
+        : null,
+      cheaper: peers.filter((l) => Number(l.price) < Number(listing.price))
+        .length,
+    };
+
+
     return {
+      compareAgainst,
       listing: {
         id: listing.id,
         title: listing.title,
@@ -171,6 +245,60 @@ async function valueListing({ listingId }, { listings }) {
         confidence: valuation.confidence,
       },
       comparison,
+      otherListings,
+    };
+  } catch (err) {
+    return { error: err.message };
+  }
+}
+
+/** Order flat types smallest first, so the summary reads naturally. */
+const FLAT_TYPE_ORDER = [
+  "1 ROOM",
+  "2 ROOM",
+  "3 ROOM",
+  "4 ROOM",
+  "5 ROOM",
+  "EXECUTIVE",
+  "MULTI-GENERATION",
+];
+
+/**
+ * Median recent resale price in one town, per flat type.
+ * Answers "what is the fair price in X" when no listing is named.
+ */
+async function townPriceSummary({ town }) {
+  if (!town) return { error: "Which town should I summarise?" };
+  const townName = String(town).toUpperCase();
+
+  try {
+    const { records } = await fetchPriceHistory({ town: townName, limit: 1000 });
+    const recent = recentOnly(records);
+
+    // Group sale prices by flat type.
+    const pricesByType = {};
+    for (const r of recent) {
+      const price = Number(r.resale_price);
+      if (!price) continue;
+      (pricesByType[r.flat_type] ??= []).push(price);
+    }
+
+    const flatTypes = FLAT_TYPE_ORDER.filter((type) => pricesByType[type]).map(
+      (type) => ({
+        flatType: type,
+        sales: pricesByType[type].length,
+        medianPrice: Math.round(median(pricesByType[type])),
+      }),
+    );
+
+    if (flatTypes.length === 0) {
+      return { error: `No recent resale transactions found for ${townName}.` };
+    }
+
+    return {
+      town: townName,
+      basedOn: `${recent.length} resale transactions in ${townName} from the last 24 months`,
+      flatTypes,
     };
   } catch (err) {
     return { error: err.message };
