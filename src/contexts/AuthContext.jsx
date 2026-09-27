@@ -49,12 +49,19 @@ export function AuthProvider({ children }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
   };
 
-  const login = useCallback(async (email, password) => {
+  // const login = useCallback(async (email, password) => {
+  //   const match = await usersApi.findByEmail(email);
+
+  //   if (!match || match.password !== password) {
+  //     throw new Error("Incorrect email or password.");
+  //   }
+    const login = useCallback(async (email, password) => {
     const match = await usersApi.findByEmail(email);
 
-    if (!match || match.password !== password) {
+    if (!match || match.role === "agent" || match.password !== password) {
       throw new Error("Incorrect email or password.");
     }
+
 
     // Never hold the password in app state.
     const safeUser = withoutPassword(match);
