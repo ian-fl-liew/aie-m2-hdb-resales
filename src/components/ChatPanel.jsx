@@ -64,6 +64,7 @@ function ChatPanel() {
           content: reply.content,
           toolCalls: reply.toolCalls ?? [],
           fallback: reply.fallback ?? false,
+          model: reply.model,
         },
       ]);
     } catch (err) {
@@ -177,6 +178,10 @@ function Message({ message }) {
           The live assistant is busy, so this is the offline assistant's answer.
           Listing and price data are real.
         </p>
+      )}
+
+      {message.model && (
+        <p className={styles.providerNote}>Answered by {message.model}</p>
       )}
 
       {linkedListings.length > 0 && (

@@ -75,8 +75,10 @@ export async function sendMessage(messages, ctx) {
 
   const executed = [];
 
+  let usedModel = AI_MODEL;
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-    const reply = await callApi(convo);
+    const { message: reply, model } = await callApi(convo);
+    usedModel = model;
 
     // The model wants to call one or more tools before answering.
     if (reply.tool_calls?.length) {
@@ -105,7 +107,9 @@ export async function sendMessage(messages, ctx) {
       continue;
     }
 
-    return { content: reply.content ?? "", toolCalls: executed };
+    //return { content: reply.content ?? "", toolCalls: executed };
+    return { content: reply.content ?? "", toolCalls: executed, model: usedModel };
+
   }
 
   return {
@@ -174,5 +178,8 @@ async function callApi(messages) {
     throw new Error("The AI service returned an unexpected response shape.");
   }
 
-  return message;
+  const model = body.model ?? AI_MODEL;
+  console.info(`[AI] reply from ${model}`);
+  return { message, model };
 }
+
