@@ -22,9 +22,9 @@ asking price is reasonable, and sellers who want to price a flat realistically.
 | Member | Owns | GitHub |
 | --- | --- | --- |
 | **Ian** | Auth, registration, routing, layout | `@ian-fl-liew` |
-| **Andri** | Listings CRUD, search and filters | `@handle` |
-| **Andri/Ian** | Price Comparison Engine | `@ian-fl-liew` |
-| **Chandra**   | Agents CRUD | `@handle`|
+| **Andri** | Listings CRUD, search and filters | `@andri0331` |
+| **Andri/Ian** | Price Comparison Engine | `@andri0331`/`@ian-fl-liew` |
+| **Chandra**   | Agents CRUD | `@ckuncara`|
 | **Ian** | AI assistant | `@ian-fl-liew` |
 
 ---
