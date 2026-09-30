@@ -113,6 +113,22 @@ describe("ChatPanel with the offline assistant", () => {
     expect(link).toHaveAttribute("href", "/app/listings/l2");
   });
 
+  it("turns away a question unrelated to HDB resale", async () => {
+    const user = userEvent.setup();
+    renderChat();
+
+    await user.type(
+      screen.getByLabelText(/message the assistant/i),
+      "write me a poem about the sea",
+    );
+    await user.click(screen.getByRole("button", { name: /send/i }));
+
+    expect(
+      await screen.findByText(/I can only help with HDB resale flats/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /view/i })).not.toBeInTheDocument();
+  });
+
   it("disables send while the input is empty", () => {
     renderChat();
     expect(screen.getByRole("button", { name: /send/i })).toBeDisabled();

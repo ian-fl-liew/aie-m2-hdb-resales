@@ -11,7 +11,50 @@
 
 import { fetchPriceHistory } from "../resaleApi";
 import { estimateValue, compareToListing, median, recentOnly } from "../valuation";
-import { remainingLeaseFromCommenceYear } from "../../utils/hdb";
+import {
+  remainingLeaseFromCommenceYear,
+  TOWNS,
+  FLAT_TYPES,
+} from "../../utils/hdb";
+
+/** Most transactions town_price_summary will fetch for one town. */
+const TOWN_SUMMARY_LIMIT = 1000;
+/** Highest price we treat as a real HDB budget; anything above is ignored. */
+const MAX_SENSIBLE_PRICE = 5_000_000;
+
+/** The town in HDB's spelling, or null when it is not an HDB town. */
+function knownTown(town) {
+  const name = String(town ?? "").trim().toUpperCase();
+  return TOWNS.includes(name) ? name : null;
+}
+
+/**
+ * Keep only arguments we recognise, so a confused or manipulated model cannot
+ * pass odd values through to the filters. Unknown towns and flat types are
+ * dropped (reported back as `ignored`) rather than matching nothing.
+ */
+function cleanSearchArgs({ town, flatType, maxPrice, minPrice } = {}) {
+  const args = {};
+  const ignored = [];
+
+  if (town) {
+    const name = knownTown(town);
+    if (name) args.town = name;
+    else ignored.push(`town "${town}"`);
+  }
+  if (flatType) {
+    const type = String(flatType).trim().toUpperCase();
+    if (FLAT_TYPES.includes(type)) args.flatType = type;
+    else ignored.push(`flat type "${flatType}"`);
+  }
+  for (const [key, value] of [["maxPrice", maxPrice], ["minPrice", minPrice]]) {
+    if (value === undefined || value === null || value === "") continue;
+    const n = Number(value);
+    if (n > 0 && n <= MAX_SENSIBLE_PRICE) args[key] = n;
+    else ignored.push(`${key} ${value}`);
+  }
+  return { args, ignored };
+}
 
 export const TOOL_DEFS = [
   {
@@ -124,7 +167,8 @@ function filterListings(listings, {
   });
 }
 
-function searchListings(args, { listings }) {
+function searchListings(rawArgs, { listings }) {
+  const { args, ignored } = cleanSearchArgs(rawArgs);
   let matches = filterListings(listings, args)
   let relaxed = null;
 
@@ -147,6 +191,7 @@ function searchListings(args, { listings }) {
     note: relaxed
       ? `Nothing matched exactly. These listings ignore the ${relaxed === "flatType" ? "flat type" : "town"} but keep the other criteria.`
       : undefined,
+    ignored: ignored.length ? ignored : undefined,
     matchCount: matches.length,
     listings: top.map((l) => ({
       id: l.id,
@@ -269,10 +314,17 @@ const FLAT_TYPE_ORDER = [
  */
 async function townPriceSummary({ town }) {
   if (!town) return { error: "Which town should I summarise?" };
-  const townName = String(town).toUpperCase();
+  // Only real HDB towns reach the transaction API.
+  const townName = knownTown(town);
+  if (!townName) {
+    return { error: `"${town}" is not an HDB town.` };
+  }
 
   try {
-    const { records } = await fetchPriceHistory({ town: townName, limit: 1000 });
+    const { records } = await fetchPriceHistory({
+      town: townName,
+      limit: TOWN_SUMMARY_LIMIT,
+    });
     const recent = recentOnly(records);
 
     // Group sale prices by flat type.

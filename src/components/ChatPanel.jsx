@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useSearchParams } from "react-router";
 import { Send, Sparkles } from "lucide-react";
 import { sendMessage, isMockProvider } from "../services/ai";
+import { MAX_QUESTION_CHARS } from "../services/ai/guards";
 import { useListings } from "../hooks/useListings";
 import { titleCase } from "../utils/format";
 import styles from "./ChatPanel.module.css";
@@ -14,6 +15,7 @@ const buildSuggestions = (town) => {
   `What is the fair price by flat type in ${place}?`,
   ];
 };
+
 const GREETING = {
   role: "assistant",
   content:
@@ -127,6 +129,7 @@ function ChatPanel() {
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask about listings or prices…"
           aria-label="Message the assistant"
+          maxLength={MAX_QUESTION_CHARS}
           disabled={thinking}
         />
         <button
@@ -162,7 +165,7 @@ function Message({ message }) {
       call.result?.listings ?? (call.result?.listing ? [call.result.listing] : []),
   );
 
-    // The same listing can come back from several tool calls; show it once.
+  // Deduplicate listings: the same listing can come back from several tool calls; show it once.
   const linkedListings = allListings.filter(
     (l, index) => allListings.findIndex((x) => x.id === l.id) === index,
   );

@@ -9,6 +9,7 @@
 // presentation, which is worth more than it sounds.
 
 import { runTool } from "./tools";
+import { OFF_TOPIC_REPLY, isGreeting, looksOnTopic } from "./guards";
 import { TOWNS, FLAT_TYPES } from "../../utils/hdb";
 import { formatPrice, titleCase } from "../../utils/format";
 
@@ -33,6 +34,12 @@ export async function sendMessage(messages, ctx) {
     };
   }
 
+  // Unlike a real model, this agent cannot use the earlier conversation to
+  // make sense of a vague follow-up, so it checks every question's scope.
+  if (!looksOnTopic(text)) {
+    return { content: OFF_TOPIC_REPLY, toolCalls: [] };
+  }
+
   // --- Intent: value a specific listing ---
   const listingId = extractListingId(text, ctx.listings);
   if (listingId && mentionsValuation(text)) {
@@ -53,10 +60,6 @@ export async function sendMessage(messages, ctx) {
 }
 
 // ---- intent detection ----
-
-function isGreeting(text) {
-  return /^\s*(hi|hello|hey|good (morning|afternoon|evening))\b/.test(text);
-}
 
 function mentionsValuation(text) {
   return /(worth|value|valuation|overpriced|over-priced|fair|fairly|reasonable|too expensive|good deal|price check)/.test(

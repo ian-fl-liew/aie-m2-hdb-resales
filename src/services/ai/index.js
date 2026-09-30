@@ -4,6 +4,12 @@
 import { AI_PROVIDER } from "../../config";
 import * as mockProvider from "./mockProvider";
 import * as openAICompatProvider from "./openAICompatProvider";
+import {
+  OFF_TOPIC_REPLY,
+  lastUserText,
+  looksOnTopic,
+  trimConversation,
+} from "./guards";
 
 const providers = {
   mock: mockProvider,
@@ -29,18 +35,30 @@ export async function sendMessage(messages, ctx) {
     );
   }
 
+  // Size guard: cap each question and send only the recent history.
+  const trimmed = trimConversation(messages);
+
+  // Scope guard: turn away an obviously unrelated opening question without
+  // calling the model. Later questions are checked by the system prompt
+  // instead, because a follow-up like "and the second one?" only makes sense
+  // with the conversation before it.
+  const userTurns = trimmed.filter((m) => m.role === "user").length;
+  if (userTurns === 1 && !looksOnTopic(lastUserText(trimmed))) {
+    return { content: OFF_TOPIC_REPLY, toolCalls: [] };
+  }
+
   if (provider === mockProvider) {
-    return mockProvider.sendMessage(messages, ctx);
+    return mockProvider.sendMessage(trimmed, ctx);
   }
 
   try {
-    return await provider.sendMessage(messages, ctx);
+    return await provider.sendMessage(trimmed, ctx);
   } catch (err) {
     // Every live model failed (busy, rate-limited or unreachable). Answer
     // with the scripted assistant instead; it still uses the real tools, so
     // any listings and prices it shows are genuine.
     console.warn("Live AI failed, using the offline assistant:", err.message);
-    const reply = await mockProvider.sendMessage(messages, ctx);
+    const reply = await mockProvider.sendMessage(trimmed, ctx);
     return { ...reply, fallback: true };
   }
 }

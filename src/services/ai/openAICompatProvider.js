@@ -40,6 +40,7 @@
 import { AI_BASE_URL, AI_MODEL, AI_API_KEY } from "../../config";
 import { SYSTEM_PROMPT } from "./systemPrompt";
 import { TOOL_DEFS, runTool } from "./tools";
+import { MAX_REPLY_TOKENS, MAX_TOOL_CALLS_PER_TURN } from "./guards";
 
 /** Stop runaway loops if the model keeps asking for tools. */
 const MAX_TOOL_ROUNDS = 4;
@@ -94,7 +95,14 @@ export async function sendMessage(messages, ctx) {
           args = {};
         }
 
-        const result = await runTool(call.function.name, args, ctx);
+        // Every tool call can fetch transaction data, so cap how many one
+        // question may make. Past the cap the model is told to stop.
+        const result =
+          executed.length < MAX_TOOL_CALLS_PER_TURN
+            ? await runTool(call.function.name, args, ctx)
+            : {
+                error: `Tool call limit (${MAX_TOOL_CALLS_PER_TURN}) reached for this question. Answer with what you have.`,
+              };
         executed.push({ name: call.function.name, args, result });
 
         convo.push({
@@ -133,6 +141,7 @@ async function callApi(messages) {
         messages,
         tools: TOOL_DEFS,
         temperature: 0.3,
+        max_tokens: MAX_REPLY_TOKENS,
       }),
     });
 
